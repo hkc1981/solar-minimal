@@ -3,5 +3,6 @@ gen/
 mir/
 internal-mir/
 source/developer_key
+developer_key
 *.prg
 *.debug.xml
