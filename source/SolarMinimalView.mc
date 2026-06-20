@@ -238,9 +238,9 @@ class SolarMinimalView extends WatchUi.WatchFace {
 
         // --- 🚀 繪圖階段 (只剩下純粹的繪製指令，極致省電) ---
         
-        // 頂部日出日落時間
+        // 頂部日出日落時間 (置中對齊在時分數字上方)
         dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(dc.getWidth() / 2, _sunEventsY, Graphics.FONT_XTINY, _sunEventsText, Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(_startX + (_timeWidth / 2), _sunEventsY, Graphics.FONT_XTINY, _sunEventsText, Graphics.TEXT_JUSTIFY_CENTER);
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         // 時、冒號、分
