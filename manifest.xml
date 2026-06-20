@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="3">
-    <iq:application id="d360f089-6fae-4d43-a616-2a3b9ad6bc27" type="watchface" name="@Strings.AppName" entry="SolarisMinimalApp" launcherIcon="@Drawables.YahaUsagi" minApiLevel="3.0.0">
+    <iq:application id="d360f089-6fae-4d43-a616-2a3b9ad6bc27" type="watchface" name="@Strings.AppName" entry="SolarMinimalApp" launcherIcon="@Drawables.YahaUsagi" minApiLevel="3.0.0">
         <iq:products>
             <iq:product id="fenix8solar51mm"/>
         </iq:products>

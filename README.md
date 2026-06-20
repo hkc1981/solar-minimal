@@ -1,6 +1,6 @@
-# Solaris Minimal - Garmin Connect IQ Watch Face
+# Solar Minimal - Garmin Connect IQ Watch Face
 
-Welcome to your first custom Garmin watch face! **Solaris Minimal** is a highly optimized, battery-saving digital watch face developed in Monkey C.
+Welcome to your first custom Garmin watch face! **Solar Minimal** is a highly optimized, battery-saving digital watch face developed in Monkey C.
 
 ---
 
@@ -21,8 +21,8 @@ This directory is organized according to Garmin's standard build layout:
 │   └── strings/
 │       └── strings.xml    # Translatable user-facing strings (AppName)
 └── source/                # Monkey C source code
-    ├── SolarisMinimalApp.mc  # Main entry point (extends Application.AppBase)
-    └── SolarisMinimalView.mc # Watch Face rendering & state manager (extends WatchUi.WatchFace)
+    ├── SolarMinimalApp.mc  # Main entry point (extends Application.AppBase)
+    └── SolarMinimalView.mc # Watch Face rendering & state manager (extends WatchUi.WatchFace)
 ```
 
 ---
@@ -55,12 +55,12 @@ Garmin requires all apps to be signed with a cryptographic key, even for simulat
 
 ## 🚀 Running the App
 
-1. Open this directory (`/Users/hkc1981/.gemini/antigravity/scratch/garmin-monkeyc-demo`) in **VS Code**.
+1. Open this directory (`/Users/hkc1981/.gemini/antigravity/scratch/solar-minimal`) in **VS Code**.
 2. Recommendation: Set this folder as your active workspace.
 3. Open the command palette (`Cmd + Shift + P`) and run **`Monkey C: Verify Installation`** to make sure everything is green.
 4. Press `F5` or go to **Run and Debug** -> **Start Debugging**.
 5. Select a device simulator (e.g., `fenix7`).
-6. The simulator will boot up and display the Solaris Minimal watch face!
+6. The simulator will boot up and display the Solar Minimal watch face!
    - In the Simulator menu, go to **Simulation -> FIT Data -> Simulate Data** to see heart rate updates.
    - Go to **Settings -> Set Solar Intensity** to test the solar charging bar.
 
@@ -82,7 +82,7 @@ var data as Number or String or Null = null;
 ```
 
 ### 2. Canvas Drawing (Programmatic UI)
-For maximum battery efficiency, Solaris Minimal draws directly onto the Device Context (`dc`) inside the `onUpdate` method:
+For maximum battery efficiency, Solar Minimal draws directly onto the Device Context (`dc`) inside the `onUpdate` method:
 ```monkeyc
 function onUpdate(dc as Graphics.Dc) as Void {
     // Clear screen to black
@@ -97,7 +97,7 @@ function onUpdate(dc as Graphics.Dc) as Void {
 
 ### 3. Battery Optimizations
 * **MIP Displays:** Black background yields maximum high-contrast sunlight readability.
-* **Sleeping Mode:** In low-power state (`_isAwake == false`), seconds are hidden to prevent CPU wakeups, shifting redraw frequency from once per second to once per minute.
+* **Sleeping Mode:** In low-power state, 1Hz updates of seconds are achieved using `onPartialUpdate` with clipping areas to preserve battery life.
 
 ---
 

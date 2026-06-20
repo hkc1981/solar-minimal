@@ -8,7 +8,7 @@ import Toybox.Time;
 import Toybox.Time.Gregorian;
 
 
-class SolarisMinimalView extends WatchUi.WatchFace {
+class SolarMinimalView extends WatchUi.WatchFace {
     private var _yahaUsagiBmp; 
 
     // Seconds tracking variables for partial update
@@ -69,7 +69,7 @@ class SolarisMinimalView extends WatchUi.WatchFace {
         // --- DRAW TIME (Hours:Minutes) ---
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         
-        var hourFont = Graphics.FONT_NUMBER_MEDIUM;
+        var hourFont = Graphics.FONT_NUMBER_HOT;
         var minuteFont = Graphics.FONT_NUMBER_HOT;
         var colFont = Graphics.FONT_LARGE;
         var secFont = Graphics.FONT_TINY;
@@ -113,7 +113,7 @@ class SolarisMinimalView extends WatchUi.WatchFace {
             
             // Get battery stats
             var stats = System.getSystemStats();
-            _batteryText = "PW: " + stats.battery.format("%d") + "0%";
+            _batteryText = "PW: " + stats.battery.format("%d") + "%";
             
             if (stats has :batteryInDays && stats.batteryInDays != null) {
                 _batteryDaysText = "D-: " + stats.batteryInDays.format("%d") + "D";

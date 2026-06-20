@@ -2,7 +2,7 @@ import Toybox.Application;
 import Toybox.Lang;
 import Toybox.WatchUi;
 
-class SolarisMinimalApp extends Application.AppBase {
+class SolarMinimalApp extends Application.AppBase {
 
     function initialize() {
         AppBase.initialize();
@@ -18,10 +18,10 @@ class SolarisMinimalApp extends Application.AppBase {
 
     // Return the initial view for your watch face
     function getInitialView() {
-        return [new SolarisMinimalView()];
+        return [new SolarMinimalView()];
     }
 }
 
-function getApp() as SolarisMinimalApp {
-    return Application.getApp() as SolarisMinimalApp;
+function getApp() as SolarMinimalApp {
+    return Application.getApp() as SolarMinimalApp;
 }
