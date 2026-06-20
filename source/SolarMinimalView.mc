@@ -6,6 +6,9 @@ import Toybox.Activity;
 import Toybox.ActivityMonitor;
 import Toybox.Time;
 import Toybox.Time.Gregorian;
+import Toybox.Position;
+import Toybox.Weather;
+import Toybox.Application.Storage;
 
 class SolarMinimalView extends WatchUi.WatchFace {
     private var _yahaUsagiBmp; 
@@ -27,6 +30,7 @@ class SolarMinimalView extends WatchUi.WatchFace {
 
     // --- 效能優化：狀態追蹤與資料快取 ---
     private var _lastMin = -1;
+    private var _lastDay = -1;
     private var _lastSteps = -1;
     private var _lastHrReadSec = -1;
     private var _needsLayout = true; // 髒標記：是否需要重新計算座標
@@ -40,12 +44,14 @@ class SolarMinimalView extends WatchUi.WatchFace {
     private var _solarText = "";
     private var _hrText = "--";
     private var _stepsText = "";
+    private var _sunEventsText = "SR --:--  SS --:--";
 
     // --- 效能優化：座標快取 (避免每秒重複計算) ---
     private var _startX = 0;
     private var _hourNumY = 0;
     private var _colY = 0;
     private var _numY = 0;
+    private var _sunEventsY = 0;
     private var _lineX = 0;
     private var _batteryX = 0;
     private var _rightBlockY = 0;
@@ -96,9 +102,16 @@ class SolarMinimalView extends WatchUi.WatchFace {
             var today = Gregorian.info(Time.now(), Time.FORMAT_MEDIUM);
             _dateText = today.day_of_week + " " + today.day;
             
+            // 更新日出日落時間
+            var dayChanged = (_lastDay != today.day);
+            if (dayChanged || _sunEventsText.equals("SR --:--  SS --:--")) {
+                _lastDay = today.day;
+                updateSunEvents(Time.now());
+            }
+            
             // 更新電量與太陽能
             var stats = System.getSystemStats();
-            _batteryText = "PW: " + stats.battery.format("%d") + "0%";
+            _batteryText = "PW: " + stats.battery.format("%d") + "%";
             if (stats has :batteryInDays && stats.batteryInDays != null) {
                 _batteryDaysText = "D-: " + stats.batteryInDays.format("%d") + "D";
             } else {
@@ -167,6 +180,7 @@ class SolarMinimalView extends WatchUi.WatchFace {
             _hourNumY = _numY + (_minuteHeight - _hourHeight) / 2;
             _colY = _numY + (_minuteHeight - _colHeight) / 2;
             _secY = _numY + _minuteHeight - 16;
+            _sunEventsY = _numY - 35;
             
             var lineWidth = 3;
             var lineSpacing = 5;
@@ -224,6 +238,10 @@ class SolarMinimalView extends WatchUi.WatchFace {
 
         // --- 🚀 繪圖階段 (只剩下純粹的繪製指令，極致省電) ---
         
+        // 頂部日出日落時間
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(dc.getWidth() / 2, _sunEventsY, Graphics.FONT_XTINY, _sunEventsText, Graphics.TEXT_JUSTIFY_CENTER);
+
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         // 時、冒號、分
         dc.drawText(_startX, _hourNumY, Graphics.FONT_NUMBER_HOT, _hhString, Graphics.TEXT_JUSTIFY_LEFT);
@@ -265,6 +283,84 @@ class SolarMinimalView extends WatchUi.WatchFace {
         dc.drawText(_secX, _secY, Graphics.FONT_TINY, ssString, Graphics.TEXT_JUSTIFY_RIGHT);
 
         dc.clearClip();
+    }
+
+    private function updateSunEvents(now as Time.Moment) as Void {
+        var location = null;
+        
+        if (Toybox has :Position && Toybox.Position has :getInfo) {
+            var positionInfo = Position.getInfo();
+            if (positionInfo != null && positionInfo.position != null) {
+                location = positionInfo.position;
+            }
+        }
+        
+        if (location == null) {
+            var activityInfo = Activity.getActivityInfo();
+            if (activityInfo != null && activityInfo.currentLocation != null) {
+                location = activityInfo.currentLocation;
+            }
+        }
+        
+        if (location == null) {
+            if (Toybox has :Weather && Toybox.Weather has :getCurrentConditions) {
+                var cond = Weather.getCurrentConditions();
+                if (cond != null && cond.observationLocationPosition != null) {
+                    location = cond.observationLocationPosition;
+                }
+            }
+        }
+        
+        if (location == null) {
+            var lat = Storage.getValue("last_lat");
+            var lon = Storage.getValue("last_lon");
+            if (lat != null && lon != null) {
+                location = new Position.Location({
+                    :latitude => lat,
+                    :longitude => lon,
+                    :format => :degrees
+                });
+            }
+        } else {
+            var coords = location.toDegrees();
+            Storage.setValue("last_lat", coords[0]);
+            Storage.setValue("last_lon", coords[1]);
+        }
+        
+        if (location != null) {
+            if (Toybox has :Weather && Toybox.Weather has :getSunrise && Toybox.Weather has :getSunset) {
+                var sunrise = Weather.getSunrise(location, now);
+                var sunset = Weather.getSunset(location, now);
+                
+                if (sunrise != null && sunset != null) {
+                    var deviceSettings = System.getDeviceSettings();
+                    var is24Hour = deviceSettings.is24Hour;
+                    
+                    var sunriseInfo = Gregorian.info(sunrise, Time.FORMAT_SHORT);
+                    var sunsetInfo = Gregorian.info(sunset, Time.FORMAT_SHORT);
+                    
+                    var sunriseHour = sunriseInfo.hour;
+                    var sunsetHour = sunsetInfo.hour;
+                    
+                    if (!is24Hour) {
+                        sunriseHour = sunriseHour % 12;
+                        if (sunriseHour == 0) { sunriseHour = 12; }
+                        sunsetHour = sunsetHour % 12;
+                        if (sunsetHour == 0) { sunsetHour = 12; }
+                    }
+                    
+                    _sunEventsText = Lang.format("SR $1$:$2$  SS $3$:$4$", [
+                        sunriseHour.format("%02d"),
+                        sunriseInfo.min.format("%02d"),
+                        sunsetHour.format("%02d"),
+                        sunsetInfo.min.format("%02d")
+                    ]);
+                    return;
+                }
+            }
+        }
+        
+        _sunEventsText = "SR --:--  SS --:--";
     }
 
     function onHide() as Void {}
